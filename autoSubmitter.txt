@@ -1,0 +1,312 @@
+function getForm() {
+  const forms = document.querySelectorAll("form");
+
+  for (const form of forms) {
+    if (form.querySelector("textarea")) {
+      return form;
+    }
+  }
+  // Return null if no form with email input is found
+  return null;
+}
+
+function isFormFilled(form) {
+  if (!form) {
+    console.error("Form  " + form + " not found.");
+    return false; // Form not found
+  }
+
+  // Get all input, select, and textarea elements within the form
+  const formElements = form.querySelectorAll("input, select, textarea");
+
+  let emptyElements = []; // Variable to store the first empty element
+  // Iterate through each form element
+  for (let i = 0; i < formElements.length; i++) {
+    const element = formElements[i];
+    // Check if the element is required and has no value
+    if (element && !element.value.trim()) {
+      // emptyElements.push(element)
+      return false; // Form not fully filled
+    }
+  }
+
+  return true; // Form is fully filled
+}
+
+
+
+/** NEW VERSION : THIS VERSION OF FUNCTION I CHECK THE LABEL ALSO */
+
+
+function run(BusinessName) {
+  console.log("BusinessName : ", BusinessName)
+  const Suggestions = {
+    name: ["name", "nom", "nombre"],
+    firstName: ["first-name", "firstName", "fname", "prenom", "first name", "firstname"],
+    lastName: ["last-name", "lastName", "lastname", "lname", "nom", "last name"],
+    fullName: ["full-name", "fullName", "fullname", "full Name"],
+    username: ["username"],
+    subject: ["subject", "comment"],
+    message: ["message", "description"],
+    phone: ["phone", "phoneNumber", "phone-number", "tel", "mobile"],
+    email: ["email" , "Your Email Address" , "email_address"],
+    address: ["address"],
+    zip_code: ["zip_code"],
+    country: ["country"],
+    city: ["city"],
+    defaultKey: [],
+    button: ["button"],
+  };
+
+  const message = `
+I’m Chris, a web designer and founder of Digintal. When I came across your domain, I saw an incredible opportunity to create something exceptional for your brand. I couldn’t resist getting started, and I’ve already designed 50% of a stunning website for you. It’s offline for now, waiting for your green light to bring it to life!
+Let’s schedule a free 30-minute meeting where I’ll walk you through the design. If you like it (and I’m sure you will), I’ll complete the website quickly and professionally.
+⚡ Here’s Why You’ll Love This:
+Risk-Free Preview: See the design first – only commit if you love it.
+Special Offer: Book now, and I’ll include SEO optimization.
+I’m Available for the Next 3 Days Only! After that, my schedule is fully booked.
+📩 Contact me today at info@digintalagency.com or through my service.digintalagency.com/web to book your meeting.
+Looking forward to connecting,
+Chris Warren
+📧 info@digintalagency.com
+
+
+  `
+  const SuggestionsValues = {
+    name: "digintal",
+    firstName: "digintal",
+    lastName: "agency",
+    fullName: "Chris",
+    username: "digintal",
+    subject: "50% Complete – Let’s Finish It Together! 🚀",
+    message: message,
+    email: "info@digintalagency.com",
+    phone: "+212709121555",
+    address: "usa",
+    zip_code: "90000",
+    country: "usa",
+    city: "texas",
+    defaultKey: "default",
+  };
+
+  const form = getForm();
+  const formElements = getFormElements(form);
+  const inputsRole = getInputsRole(formElements, Suggestions);
+  console.log(inputsRole);
+  console.log(Object.keys(inputsRole));
+
+  function FillForm(inputsRole, SuggestionsValues) {
+    // Iterate over keys in inputsRole
+    Object.keys(inputsRole).forEach((key) => {
+      // Skip 'other' and 'message' keys, as they are not set by defaultValues
+      if (key !== "other") {
+        const element = inputsRole[key];
+
+        // Check if the element is an array (for defaultKey)
+        if (Array.isArray(element)) {
+          // ******************* THIS IS THE DEFAULT KEYS *************************
+          // Set the value for each element in the array
+          element.forEach((item, index) => {
+            const elementName = item.getAttribute("name");
+            console.log(elementName);
+            if (SuggestionsValues[key]) {
+              item.value = SuggestionsValues[key];
+            }
+          });
+        } else {
+          // console.log(element);
+          // Set the value for the element
+          if (SuggestionsValues[key]) {
+            element.value = SuggestionsValues[key];
+          }
+        }
+      }
+    });
+
+    // Click the button if it exists in defaultKey
+    if (inputsRole.button) {
+      setTimeout(() => {
+        console.log("inputsRole.button", inputsRole.button)
+        // inputsRole.button.click()
+      }, 5000);
+    } else {
+      alert("button submit doesn't excite")
+    }
+  }
+  // FillForm(inputsRole, SuggestionsValues);
+
+  /** ========================= HELPERS  +++++++++++++++++++++++++++++++++++++ */
+  
+function getInputsRole(formElements, Suggestions) {
+  const inputsRole = {
+      other: formElements.slice(),
+  };
+
+  function matchSuggestion(element, suggestionArray) {
+      return suggestionArray.includes(element);
+  }
+
+  for (const elementObj of formElements) {
+      const element = elementObj.element;
+      let label = (elementObj.label || "").trim(); // Trim leading and trailing spaces
+      label = label.replace(/[^a-z0-9]/gi, "").toLowerCase(); // Remove non-alphanumeric characters and convert to lowercase
+      if (!element) {
+          continue; // Skip undefined elements
+      }
+
+      // console.log("element : ", element);
+      console.log("label : ", label);
+
+      const tagName = element.tagName.toLowerCase();
+      const inputName = (element.getAttribute("name") || "").toLowerCase();
+      const inputType = (element.getAttribute("type") || "").toLowerCase();
+
+      // console.log("tagName : ", tagName);
+      // console.log("inputName : ", inputName);
+      // console.log("inputType : ", inputType);
+
+      let matched = false;
+
+      for (const key of Object.keys(Suggestions)) {
+          const suggestionArray = Suggestions[key];
+          // console.log(suggestionArray);
+
+          if (
+          matchSuggestion(inputType, suggestionArray) ||
+          matchSuggestion(inputName, suggestionArray)
+          ) {
+              inputsRole.other = inputsRole.other.filter((e) => e !== element);
+              inputsRole[key] = element;
+              matched = true;
+              break;
+          } 
+          else if (matchSuggestion(label, suggestionArray)) {
+              console.log("label has value in suggestionArray")
+              inputsRole.other = inputsRole.other.filter((e) => e !== element);
+              inputsRole[key] = element;
+              matched = true;
+              break;
+          }
+          else {
+              for (let i = 0; i < suggestionArray.length; i++) {
+                  if (inputName.includes(suggestionArray[i])) {
+                      inputsRole.other = inputsRole.other.filter((e) => e !== element);
+                      inputsRole[key] = element;
+                      matched = true;
+                      break;
+                  }
+              }
+          }
+      }
+
+      if (!matched) {
+          if (tagName === "input" && inputType !== "submit") {
+              const defaultKey = getDefaultKeyForType(inputType);
+              console.log("defaultKey : ", defaultKey);
+              inputsRole.defaultKey = inputsRole.defaultKey || [];
+              inputsRole.defaultKey.push(element);    
+          } else if (tagName === "textarea") {
+              inputsRole.message = element;
+          } else if (tagName === "button" || inputType === "submit") {
+              inputsRole.button = element;
+          } else if (tagName === "select") {
+              // console.log("element select : ", element);
+              selectRandomNonEmptyOption(element);
+          }
+      }
+  
+  }
+
+  return inputsRole;
+}
+
+
+
+function getFormElements(form) {
+  if (!form) {
+    return null; // Handle the case where no form is found
+  }
+
+  // Using the form.elements property to get all form elements
+  const elements = form.elements;
+
+  // Convert the HTMLCollection to an array for easier manipulation
+  const elementsArray = Array.from(elements);
+
+  // Filter out hidden elements
+  const visibleElements = elementsArray.filter((element) => {
+      const style = window.getComputedStyle(element);
+      return style.display !== "none" && style.visibility !== "hidden";
+  });
+
+  // Map each visible element to include its label if available
+  const elementsWithLabels = visibleElements.map((element) => {
+      const label = getLabelForElement(form, element);
+      return { element, label };
+  });
+
+  return elementsWithLabels;
+}
+
+function getLabelForElement(form, element) {
+  // Find the label associated with the element
+  const labels = Array.from(form.getElementsByTagName('label'));
+  for (const label of labels) {
+      if (label.htmlFor === element.id) {
+          return label.innerText;
+      }
+  }
+  return null; // Return null if no label found for the element
+}
+
+  function getForm() {
+    const forms = document.querySelectorAll("form");
+
+    for (const form of forms) {
+      if (form.querySelector("textarea")) {
+        return form;
+      }
+    }
+    // Return null if no form with email input is found
+    return null;
+  }
+
+  // Helper function to determine defaultKey based on inputType
+  function getDefaultKeyForType(inputType) {
+    switch (inputType) {
+      case "email":
+        return "defaultEmail";
+      case "phone":
+      case "tel":
+        return "defaultPhone";
+      case "text":
+        return "defaultText";
+      default:
+        return "default";
+    }
+  }
+
+  // Helper function to select a random non-empty option from a select element
+  function selectRandomNonEmptyOption(selectElement) {
+    console.log("Select element:", selectElement);
+
+    const selectOptions = Array.from(selectElement.options).filter(
+      (option) => option.value.trim() !== ""
+    );
+
+    if (selectOptions.length > 0) {
+      const randomIndex = Math.floor(Math.random() * selectOptions.length);
+      const selectedOption = selectOptions[randomIndex];
+      selectedOption.selected = true; // Select the option
+    } else {
+      console.log(
+        "No option with a non-empty value found in the select element."
+      );
+    }
+  }
+
+  FillForm(inputsRole, SuggestionsValues);
+}
+
+
+run()
